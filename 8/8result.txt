@@ -1,0 +1,3 @@
+3 5 7 9 11 
+The queue is full, you can't insert any data
+7 9 11 
