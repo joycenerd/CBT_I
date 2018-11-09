@@ -9,23 +9,24 @@ typedef struct polynode{
 	float coef;
 	int exp;
 	polyptr link;
-}Poly;
+}Node;
+
 FILE *fout;
 
-void printPoly(polyptr ptr){
+void print(polyptr ptr){
 	ptr=ptr->link;
 	fprintf(fout,"%.1fx^%d",ptr->coef,ptr->exp);
 	ptr=ptr->link;
 	while(ptr){
-		if(ptr->coef<0.000) fprintf(fout,"%.1fx^%d",ptr->coef,ptr->exp);
-		else if(ptr->coef>0.000)fprintf(fout,"+%.1fx^%d",ptr->coef,ptr->exp);
+		if(ptr->coef<0.0) fprintf(fout,"%.1fx^%d",ptr->coef,ptr->exp);
+		else if(ptr->coef>0.0) fprintf(fout,"+%.1fx^%d",ptr->coef,ptr->exp);
 		ptr=ptr->link;
 	}
 	fprintf(fout,"\n");
 }
 
 polyptr attach(polyptr ptr,float coef,int exp){
-	polyptr node=malloc(sizeof(Poly));
+	polyptr node=malloc(sizeof(Node));
 	node->coef=coef;
 	node->exp=exp;
 	node->link=NULL;
@@ -34,131 +35,127 @@ polyptr attach(polyptr ptr,float coef,int exp){
 	return ptr;
 }
 
-void polymul(polyptr a, polyptr b){
-	polyptr headb=b->link;
-	polyptr e=malloc(sizeof(Poly));
-	e->coef=0;
-	e->exp=-1;
-	polyptr heade=e;
-    a=a->link;
-	while(a!=NULL){
-		b=headb;
-		while(b!=NULL){
-			float coef=b->coef*a->coef;
-			int exp=a->exp+b->exp;
-			polyptr tmpe=heade;
-			while(tmpe){
-				if(tmpe->exp==exp){
-					tmpe->coef+=coef;
-					break;
-				}
-				tmpe=tmpe->link;
-			}
-			if(tmpe==NULL) e=attach(e,coef,exp);
-			b=b->link;
-		}
-		a=a->link;
-	}
-	fprintf(fout,"E(x)=");
-	printPoly(heade->link);
-}
-
-void polysub(polyptr a, polyptr b){
-	a=a->link;
-	b=b->link;
-	polyptr d=malloc(sizeof(Poly));
-	d->link=NULL;
-	polyptr head=d;
-	while(a!=NULL && b!=NULL){
-		polyptr node=malloc(sizeof(Poly));
-		if(a->exp==b->exp){
-			float coef=a->coef-b->coef;
-			d=attach(d,coef,a->exp);
-			a=a->link;
-			b=b->link;
-		}
-		else if(a->exp>b->exp){
-			d=attach(d,a->coef,a->exp);
-			a=a->link;
-		}
-		else{
-			d=attach(d,-b->coef,b->exp);
-			b=b->link;
-		}
-	}
-	while(a!=NULL){
-		d=attach(d,a->coef,a->exp);
-		a=a->link;
-	}
-	while(b!=NULL){
-		d=attach(d,-b->coef,b->exp);
-		b=b->link;
-	}
-	fprintf(fout,"D(x)=");
-	printPoly(head);
-}
-
-void polyadd(polyptr a, polyptr b){
-	a=a->link;
-	b=b->link;
-	polyptr c=malloc(sizeof(Poly));
+void add(polyptr a,polyptr b){
+	polyptr c=malloc(sizeof(Node));
 	c->link=NULL;
 	polyptr head=c;
-	while(a!=NULL && b!=NULL){
-		polyptr node=malloc(sizeof(Poly));
+	a=a->link; b=b->link;
+	while(a && b){
 		if(a->exp==b->exp){
-			float coef=a->coef+b->coef;
-			c=attach(c,coef,a->exp);
-			a=a->link;
-			b=b->link;
+			c=attach(c,a->coef+b->coef,a->exp);
+			a=a->link;b=b->link;
 		}
 		else if(a->exp>b->exp){
 			c=attach(c,a->coef,a->exp);
 			a=a->link;
 		}
-		else{
+		else if(a->exp<b->exp){
 			c=attach(c,b->coef,b->exp);
 			b=b->link;
 		}
 	}
-	while(a!=NULL){
+	while(a){
 		c=attach(c,a->coef,a->exp);
 		a=a->link;
 	}
-	while(b!=NULL){
+	while(b){
 		c=attach(c,b->coef,b->exp);
 		b=b->link;
 	}
 	fprintf(fout,"C(x)=");
-	printPoly(head);
+	print(head);
 }
 
-int main()
-{
+void sub(polyptr a,polyptr b){
+	polyptr d=malloc(sizeof(Node));
+	d->link=NULL;
+	polyptr head=d;
+	a=a->link; b=b->link;
+	while(a && b){
+		if(a->exp==b->exp){
+			d=attach(d,a->coef-b->coef,a->exp);
+			a=a->link;b=b->link;
+		}
+		else if(a->exp>b->exp){
+			d=attach(d,a->coef,a->exp);
+			a=a->link;
+		}
+		else if(a->exp<b->exp){
+			d=attach(d,-b->coef,b->exp);
+			b=b->link;
+		}
+	}
+	while(a){
+		d=attach(d,a->coef,a->exp);
+		a=a->link;
+	}
+	while(b){
+		d=attach(d,-b->coef,b->exp);
+		b=b->link;
+	}
+	fprintf(fout,"D(x)=");
+	print(head);
+}
+
+void mult(polyptr a,polyptr b){
+	polyptr e=malloc(sizeof(Node));
+	e->exp=-1;
+	e->link=NULL;
+	polyptr heade=e;
+	a=a->link;b=b->link;
+	polyptr headb=b;
+	while(a){
+		b=headb;
+		while(b){
+			float coef=a->coef*b->coef;
+			int exp=a->exp+b->exp;
+			polyptr tmp=heade;
+			while(tmp){
+				if(tmp->exp==exp){
+					tmp->coef+=coef;
+					break;
+				}
+				tmp=tmp->link;
+			}
+			if(tmp==NULL) e=attach(e,coef,exp);
+			b=b->link;
+		}
+		a=a->link;
+	}
+	fprintf(fout,"E(x)=");
+	print(heade);
+}
+
+int main(){
 	FILE *fin=fopen("14input.txt","r");
 	fout=fopen("14result.txt","w");
 	assert(fin!=NULL);
-	polyptr polya=malloc(sizeof(Poly));
-	polya->link=NULL;
-	polyptr polyb=malloc(sizeof(Poly));
-	polyb->link=NULL;
-	polyptr heada=polya,headb=polyb;
+	char l[N];
+	polyptr a=malloc(sizeof(Node));
+	a->link=NULL;
+	polyptr heada=a;
+	polyptr b=malloc(sizeof(Node));
+	b->link=NULL;
+	polyptr headb=b;
 	float coef;
 	int exp;
-	char l[N];
 	while(fgets(l,N,fin) && l[0]!=':'){
 		sscanf(l,"%f %d",&coef,&exp);
-		polya=attach(polya,coef,exp);
+		a=attach(a,coef,exp);
 	}
+	fprintf(fout,"%f %d\n",a->coef,a->exp);
 	fprintf(fout,"A(x)=");
-	printPoly(heada);
+	print(heada);
 	while(fgets(l,N,fin)){
 		sscanf(l,"%f %d",&coef,&exp);
-		polyb=attach(polyb,coef,exp);
+		b=attach(b,coef,exp);
 	}
+	fprintf(fout,"%f %d\n",b->coef,b->exp);
 	fprintf(fout,"B(x)=");
-	printPoly(headb);
-	polyadd(heada,headb);
-	polysub(heada,headb);
-	polymul(heada,headb);
+	print(headb);
+	add(heada,headb);
+	sub(heada,headb);
+	mult(heada,headb);
+	fclose(fin);
+	fclose(fout);
 }

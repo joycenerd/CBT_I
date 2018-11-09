@@ -13,8 +13,8 @@ void lsp(char *pat){
 	ui len=strlen(pat);
 	for(j=1;j<len;j++){
 		i=fail[j-1];
-		while(pat[j]!=pat[i+1] && i>0) i=fail[i];
-		if(pat[j]==pat[i+1]) fail[j]=i+1;
+		while(pat[j]!=pat[i] && i>0) i=fail[i];
+		if(pat[j]==pat[i]) fail[j]=i+1;
 		else fail[j]=0;
 	}
 }

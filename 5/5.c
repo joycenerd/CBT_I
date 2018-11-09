@@ -30,8 +30,6 @@ int main()
 		strcpy(tab[count].name,token[0]);
 		printf("%s\n",tab[count].name);
 		while(token[col]!=NULL) token[++col]=strtok(NULL,",\r\n\0");
-		//printf("%d\n",col);
-		//fprintf(fout,"%s\n",tab[count].name);
 		ui len=strlen(token[1]);
 		for(i=0;i<8;i++) tab[count].day[i]=0;
 		for(i=0;i<len;i++){

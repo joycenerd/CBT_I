@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #define N 1010
 
@@ -9,20 +9,21 @@ typedef struct stacknode *stackptr;
 typedef struct stacknode{
 	int data;
 	stackptr link;
-}Stack;
+}Node;
 
 int main()
 {
 	FILE *fin=fopen("4input.txt","r");
+	FILE *fout=fopen("4result.txt","w");
 	assert(fin!=NULL);
 	char ins[N];
-	int num;
 	stackptr top=NULL;
 	while(!feof(fin)){
 		fscanf(fin,"%s",ins);
 		if(strncmp(ins,"Push",4)==0){
+			int num;
 			fscanf(fin,"%d",&num);
-			stackptr node=malloc(sizeof(Stack));
+			stackptr node=malloc(sizeof(Node));
 			node->data=num;
 			node->link=top;
 			top=node;
@@ -33,8 +34,6 @@ int main()
 			free(tmp);
 		}
 	}
-	fclose(fin);
-	FILE *fout=fopen("4result.txt","w");
 	stackptr cur=NULL,trail;
 	int count=0;
 	while(top){
@@ -50,6 +49,7 @@ int main()
 		cur=cur->link;
 	}
 	fprintf(fout,"\n");
+	fclose(fin);
 	fclose(fout);
 	return 0;
 }
